@@ -59,20 +59,45 @@ function App() {
             },
         ];
 
-const [todos,setTodos]=useState<ToDoType[]>(todoData);
+const [todos,setTodos]=useState<ToDoType[]>([]);
 const [todoText,setTodoText]=useState<string>('');
 
-const addToDo=()=>{
-    const newTodo={
-        id:Math.random(),
-        title:todoText,
-        isDone:false
-        };
-    todos.push(newTodo);
-    setTodos(todos);
-    setTodoText('');
+useEffect(()=>{
+    const getTodos=async()=>{
+        try{
+            const todos=await AsyncStorage.getItem("my-todo");
+            if(todos !== null){
+                setTodos(JSON.parse(todos))
+                }
+            }catch (error){
+                console.log(error);
+                }
+    };
+getTodos();
+}, []);
 
-    }
+{/* add task functionality */}
+{/*used async storage to avoid the new items get deleted when restart the app*/}
+{/* and dismiss the keyboard and clear the input field after adding a new task */}
+const addToDo=async () => {
+    try{
+            const newTodo={
+                id:Math.random(),
+                title:todoText,
+                isDone:false
+                };
+            todos.push(newTodo);
+            setTodos(todos);
+            await AsyncStorage.setItem("my-todo",JSON.stringify(todos));
+            setTodoText('');
+            Keyboard.dismiss();
+            }catch(error){
+                console.log(error);
+                }
+        };
+
+
+
 
 return(
     <SafeAreaView style={styles.container}>
@@ -97,13 +122,13 @@ return(
     />
     </View>
 
-    {/*etract the items from todo array to dispaly each task*/}
+    {/*extract the items from todo array to display each task.new tasks add to the top by reverse function*/}
    <FlatList
-   data={todos}
+   data={[...todos].reverse()}
    keyExtractor={(item)=>item.id.toString()}
-   renderItem={({item})=>(
+   renderItem={({item})=>
        <ToDoItem todo={item}/>
-       )}
+       }
    />
 
    {/*the task adding section*/}

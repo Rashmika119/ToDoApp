@@ -61,13 +61,16 @@ function App() {
 
 const [todos,setTodos]=useState<ToDoType[]>([]);
 const [todoText,setTodoText]=useState<string>('');
+const [searchQuery,setSearchQuery]=useState<string>('');
+const [oldTodos,setOldTodos]=useState<ToDoType[]>([]);
 
 useEffect(()=>{
     const getTodos=async()=>{
         try{
             const todos=await AsyncStorage.getItem("my-todo");
             if(todos !== null){
-                setTodos(JSON.parse(todos))
+                setTodos(JSON.parse(todos));
+                setOldTodos(JSON.parse(todos));
                 }
             }catch (error){
                 console.log(error);
@@ -88,6 +91,7 @@ const addToDo=async () => {
                 };
             todos.push(newTodo);
             setTodos(todos);
+            setOldTodos(todos);
             await AsyncStorage.setItem("my-todo",JSON.stringify(todos));
             setTodoText('');
             Keyboard.dismiss();
@@ -96,6 +100,48 @@ const addToDo=async () => {
                 }
         };
 
+    {/* creted delete task funstionality with async storage*/}
+    const deleteTodo = async(id:number)=>{
+        try{
+            const newTodos=todos.filter((todo)=>todo.id !== id);
+            await AsyncStorage.setItem("my-todo",JSON.stringify(newTodos));
+            setTodos(newTodos);
+            setOldTodos(newTodos);
+            }catch(error){
+                console.log(error);
+            }
+        }
+
+{/*function to indicate the task is done */}
+    const handleDone = async(id:number)=>{
+        try{
+            const newTodos=todos.map((todo)=>{
+                if(todo.id===id){
+                    todo.isDone= !todo.isDone;
+                    }
+                return todo;
+                });
+            await AsyncStorage.setItem("my-todo",JSON.stringify(newTodos));
+            setTodos(newTodos);
+            setOldTodos(newTodos);
+            }catch(error){
+                console.log(error);
+            }
+        };
+    const onSearch=(query: string)=>{
+        if(query==''){
+            setTodos(oldTodos);
+            }else{
+                const filteredTodos=todos.filter((todo)=>
+                todo.title.toLowerCase().includes(query.toLowerCase())
+            );
+                setTodos(filteredTodos);
+            }
+        };
+
+useEffect(()=>{
+    onSearch(searchQuery);
+    },[searchQuery]);
 
 
 
@@ -117,6 +163,8 @@ return(
     <Ionicons name="search" size={24} color={"#333"}/>
     <TextInput
     placeholder="Search"
+    value={searchQuery}
+    onChangeText={(text)=>setSearchQuery(text)}
     style={styles.searchInput}
     clearButtonMode="always"
     />
@@ -127,7 +175,10 @@ return(
    data={[...todos].reverse()}
    keyExtractor={(item)=>item.id.toString()}
    renderItem={({item})=>
-       <ToDoItem todo={item}/>
+       <ToDoItem
+       todo={item}
+       deleteTodo={deleteTodo}
+       handleTodo={handleDone}/>
        }
    />
 
@@ -154,12 +205,22 @@ return(
     )
 }
 
-const ToDoItem=({todo}:{todo:ToDoType})=>{
+const ToDoItem=({
+    todo,
+    deleteTodo,
+    handleTodo
+    }:{
+        todo:ToDoType,
+    deleteTodo:(id:number)=>void;
+    handleTodo:(id:number)=>void;
+
+    })=>{
     return(
            <View style={styles.todoContainer}>
            <View style={styles.todoInfoContainer}>
            <Checkbox
            value={todo.isDone}
+           onValueChange={()=>handleTodo(todo.id)}
            color={todo.isDone ? '#4630EB' : undefined}
            />
            <Text
@@ -172,6 +233,7 @@ const ToDoItem=({todo}:{todo:ToDoType})=>{
            </View>
            <TouchableOpacity
            onPress={()=>{
+               deleteTodo(todo.id);
                alert("Deleted!.." + todo.id);
                }}
            >
@@ -195,7 +257,9 @@ const styles = StyleSheet.create({
     searchBar:{
         flexDirection:'row',
         backgroundColor:'#FFF',
-        padding:16,
+        alignItems:'center',
+        paddingHorizontal:16,
+        paddingVertical:Platform.OS==='ios' ? 16 : 8,
         borderRadius:10,
         gap:10,
         alignItems:'center',

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import ToDoItem from './src/components/ToDoItem'
+import ToDoItem from '../components/ToDoItem'
 import type { PropsWithChildren } from 'react';
 import {
     FlatList,
@@ -14,6 +14,7 @@ import {
     Text,
     View,
     Alert,
+    BackHandler,
 
 } from 'react-native';
 
@@ -23,34 +24,23 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Checkbox from '@react-native-community/checkbox';
 import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { todoStoreType, ToDoType } from './src/types/types';
-import { useTodoStore, useTodoTextStore } from './src/store/store';
+import { todoStoreType, ToDoType } from '../types/types';
+import { useTodoStore, useTodoTextStore } from '../store/store';
 
 function HomeScreen() {
 
-    {/*create todo array*/ }
-    const todoData = [
-        {
-            id: 1,
-            title: "Todo 1",
-            isDone: false,
-        },
-        {
-            id: 2,
-            title: "Todo 2",
-            isDone: false,
-        },
-        {
-            id: 3,
-            title: "Todo 3",
-            isDone: false,
-        },
-        {
-            id: 4,
-            title: "Todo 4",
-            isDone: true,
-        },
-    ];
+    useEffect(() => {
+        const onBackPress = () => {
+            BackHandler.exitApp()
+            return true;
+        };
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            onBackPress
+        );
+
+        return () => backHandler.remove();
+    }, []);
 
     // const [todos, setTodos] = useState<ToDoType[]>(todoData);
     const {todoText, setTodoText} = useTodoTextStore(state => state)
@@ -74,55 +64,7 @@ function HomeScreen() {
         getTodos();
     }, []);
 
-    {/* add task functionality */ }
-    {/*used async storage to avoid the new items get deleted when restart the app*/ }
-    {/* and dismiss the keyboard and clear the input field after adding a new task */ }
-    // const addToDo = async () => {
-    //     try {
-    //         const newTodo: ToDoType = {
-    //             id: Math.random(),
-    //             title: todoText,
-    //             isDone: false
-    //         };
-    //         todos.push(newTodo);
-    //         setTodos(todos);
-    //         setOldTodos(todos);
-    //         await AsyncStorage.setItem("my-todo", JSON.stringify(todos));
-    //         setTodoText('');
-    //         Keyboard.dismiss();
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
 
-    {/* creted delete task funstionality with async storage*/ }
-    // const deleteTodo = async (id: number) => {
-    //     try {
-    //         const newTodos = todos.filter((todo) => todo.id !== id);
-    //         await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
-    //         setTodos(newTodos);
-    //         setOldTodos(newTodos);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // }
-
-    {/*function to indicate the task is done */ }
-    // const handleDone = async (id: number) => {
-    //     try {
-    //         const newTodos = todos.map((todo) => {
-    //             if (todo.id === id) {
-    //                 todo.isDone = !todo.isDone;
-    //             }
-    //             return todo;
-    //         });
-    //         await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
-    //         setTodos(newTodos);
-    //         setOldTodos(newTodos);
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
-    // };
     const onSearch = (query: string) => {
         if (query == '') {
             setTodos(oldTodos);
@@ -148,14 +90,14 @@ function HomeScreen() {
                         Alert.alert("Clicked!");
                     }}
                 >
-                    <Image source={require("./src/Asset/menu.png")} style={styles.menuButton} />
+                    <Image source={require("../Asset/menu.png")} style={styles.menuButton} />
                 </TouchableOpacity>
             </View>
 
             {/*clearButtonMode this provide a close button in the input field.but it work in IOS not android*/}
             {/*extract the items from todo array to dispaly each task*/}
             <View style={styles.searchBar}>
-                {/**/}
+                <Image source={require("../Asset/search.png")} style={styles.searchIcon} />
                 <TextInput
                     placeholder="Search"
                     value={searchQuery}
@@ -192,7 +134,7 @@ function HomeScreen() {
                     autoCorrect={false}
                 />
                 <TouchableOpacity style={styles.addButton} onPress={addTodo}>
-                    <Image source={require("./src/Asset/add.png")} />
+                    <Image source={require("../Asset/add.png")} />
                 </TouchableOpacity>
             </KeyboardAvoidingView>
         </SafeAreaView>
@@ -222,6 +164,11 @@ const styles = StyleSheet.create({
 
         marginBottom: 20,
     },
+    searchIcon:{
+        height: 24,
+        width: 24,
+        color: '#333',
+    },
     searchInput: {
         flex: 1,
         fontSize: 16,
@@ -238,7 +185,7 @@ const styles = StyleSheet.create({
     newTodoInput: {
         flex: 1,
         backgroundColor: '#fff',
-        padding: 16,
+
         borderRadius: 10,
         fontSize: 16,
         color: '#333',

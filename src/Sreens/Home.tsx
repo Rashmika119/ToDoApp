@@ -27,7 +27,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { todoStoreType, ToDoType } from '../types/types';
 import { useTodoStore, useTodoTextStore } from '../store/store';
 
-function HomeScreen() {
+function HomeScreen({navigation}:any) {
 
     useEffect(() => {
         const onBackPress = () => {
@@ -87,10 +87,10 @@ function HomeScreen() {
             <View style={styles.header}>
                 <TouchableOpacity
                     onPress={() => {
-                        Alert.alert("Clicked!");
+                        navigation.navigate("Recent")
                     }}
                 >
-                    <Image source={require("../Asset/menu.png")} style={styles.menuButton} />
+                    <Image source={require("../Asset/recent.png")} style={styles.recentButton} />
                 </TouchableOpacity>
             </View>
 
@@ -191,9 +191,9 @@ const styles = StyleSheet.create({
         color: '#333',
     },
 
-    menuButton: {
-        height: 24,
-        width: 24
+    recentButton: {
+        height: 50,
+        width: 50
     },
     addButton: {
         height: 34,

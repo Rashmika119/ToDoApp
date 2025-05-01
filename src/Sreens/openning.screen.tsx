@@ -13,12 +13,20 @@ export default function OpeningScreen({ navigation }: any) {
     return (
 
         <View style={styles.container}>
+            
             <LottieView
                 source={require('../Asset/loggin.json')}
                 autoPlay
                 loop
                 style={styles.image}
             ></LottieView>
+            <LottieView
+                source={require('../Asset/load.json')}
+                autoPlay
+                loop
+                style={styles.load}
+            ></LottieView>
+
 
         </View>
     );
@@ -27,6 +35,7 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: '#ffff',
         flex: 1,
+        flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
 
@@ -36,16 +45,11 @@ const styles = StyleSheet.create({
         height: 300,
         resizeMode: 'contain',
     },
-    button: {
-        marginTop: 30,
-        backgroundColor: '#54D83A',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 10,
+    load: {
+        width: 150,
+        height: 150,
+        resizeMode: 'contain',
     },
-    buttonText: {
-        color: '#000',
-        fontSize: 18,
-    }
+
 
 })

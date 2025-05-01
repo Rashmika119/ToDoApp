@@ -1,52 +1,72 @@
 import { create } from 'zustand'
-import { todoStoreType, todoTextType, ToDoType } from '../types/types'
+import { editStoreType, todoStoreType, todoTextType, ToDoType } from '../types/types'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Keyboard } from 'react-native'
 
 export const useTodoTextStore = create<todoTextType>((set) => ({
-    todoText: "",
-    setTodoText: (text) => {
-        set(() => ({
-            todoText: text
-        }))
+    todoText: {
+        id: 0,
+        title: "",
+        isDone: false,
+        des: "",
     },
+    setTodoText: (text: string, key: string) => {
+        set((state) => ({
+            todoText: {
+                ...state.todoText,
+                [key]: text,
+
+            }
+        }))
+
+    },
+    clearTodoText: () => {
+        set(() => ({
+            todoText: {
+                id: 0,
+                title: "",
+                isDone: false,
+                des: "",
+            }
+        }))
+    }
 }))
 
-export const useTodoStore = create((set) => ({
+export const useTodoStore = create<todoStoreType>((set) => ({
     todos: [],
     oldTodos: [],
     addTodo: async () => {
-        const { todoText, setTodoText } = useTodoTextStore.getState();
+        const { todoText, setTodoText, clearTodoText } = useTodoTextStore.getState();
         try {
 
-            if (!todoText) {
-                return; 
+            if (!todoText || !todoText.title || todoText.title.trim() === "") {
+                return;
             }
 
             const newTodo = {
                 id: Math.random(),
-                title: todoText,
-                isDone: false
+                title: todoText.title,
+                isDone: false,
+                des: todoText.des,
             };
-            set((state: { todos: any }) => ({
+            set((state) => ({
                 todos: [...state.todos, newTodo],
                 oldTodos: [...state.todos, newTodo]
-            }))
-            set(async (state: { todos: any }) => {
-                await AsyncStorage.setItem("my-todo", JSON.stringify(state.todos));
-                return state
-            })
 
-            setTodoText('');
+            }))
+
+            await AsyncStorage.setItem("my-todo", JSON.stringify(useTodoStore.getState().todos));
+
+            clearTodoText();
             Keyboard.dismiss();
         } catch (error) {
             console.log(error);
         }
     },
-    deleteTodo: async (id: number) => {
+    deleteTodo: async (id: number | undefined) => {
         try {
-            const { todos } = useTodoStore.getState() as todoStoreType; // Access current todos
-            const newTodos = todos.filter((todo: ToDoType) => todo.id !== id); // Filter out the deleted todo
+            const { todos } = useTodoStore.getState(); // Access current todos
+            const newTodos = todos.filter((todo) => todo.id !== id); // Filter out the deleted todo
 
             // Save to AsyncStorage
             await AsyncStorage.setItem("my-todo", JSON.stringify(newTodos));
@@ -62,9 +82,9 @@ export const useTodoStore = create((set) => ({
     },
     handleDone: async (id: number) => {
         try {
-            const { todos } = useTodoStore.getState() as todoStoreType; // Get current todos
+            const { todos } = useTodoStore.getState(); // Get current todos
 
-            const newTodos = todos.map((todo: ToDoType) => {
+            const newTodos = todos.map((todo) => {
                 if (todo.id === id) {
                     return { ...todo, isDone: !todo.isDone }; // Return a new object
                 }
@@ -93,8 +113,42 @@ export const useTodoStore = create((set) => ({
             oldTodos: todos
         }))
     },
+    editTodo: async (id: number | undefined, newValue) => {
+        const { todos } = useTodoStore.getState();
+        const newList = [...todos];
+        const index = newList.findIndex((todo) => todo.id === id);
+        if (index < 0) return
+        newList[index] = {
+            ...newList[index],
+            ...newValue,
+        }
 
-}
 
-))
+        await AsyncStorage.setItem("my-todo", JSON.stringify(newList));
+
+        set(() => (
+            { todos: newList }
+        ))
+
+
+    },
+
+
+    // Access current todos
+
+}))
+
+export const useEditStore = create<editStoreType>((set) => ({
+    editId: null,
+    setEditId: (id: number) => {
+        set(() => ({
+            editId: id
+        }))
+    },
+    clearEditId: () => {
+        set(() => ({
+            editId: null
+        }))
+    }
+}))
 

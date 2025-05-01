@@ -7,6 +7,7 @@ This is a simple and elegant To-Do List mobile application developed using **Rea
 ## 🧩 Features
 
 - ➕ Add tasks
+- ✏️ Edit Option: Users can now edit their existing to-do items with ease
 - 🗑️ Delete tasks
 - ✅ Mark tasks as completed (with strikethrough)
 - 🔍 Search tasks
